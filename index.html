@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Flex Calc">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#14213d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Flex Block Calculator</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#14213d;--mute:#5b6678;--acc:#ff9900;--good:#12805c;--warn:#b45309;--line:#e3e8f0;--inp:#fff4c2;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--card:#131c2e;--ink:#eef2fa;--mute:#9aa7bd;--line:#223049;--good:#4ade80;--warn:#fbbf24;--inp:#2a2a14}}
+:root[data-theme="dark"]{--bg:#0b1220;--card:#131c2e;--ink:#eef2fa;--mute:#9aa7bd;--line:#223049;--good:#4ade80;--warn:#fbbf24;--inp:#2a2a14}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:560px;margin:0 auto;padding:14px}
+h1{font-size:1.25rem;margin:0 0 2px}
+.sub{color:var(--mute);font-size:.85rem;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0 0 10px}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:block;font-size:.78rem;color:var(--mute)}
+input{display:block;width:100%;margin-top:3px;padding:10px;font:inherit;font-size:16px;color:var(--ink);background:var(--inp);border:1px solid var(--line);border-radius:10px;min-height:44px}
+.full{grid-column:1/-1}
+.hero{border-left:6px solid var(--acc)}
+.big{font-size:2.2rem;font-weight:800;line-height:1.05}
+.stat{background:var(--bg);border-radius:10px;padding:10px}
+.stat b{display:block;font-size:1.3rem}
+.stat span{font-size:.72rem;color:var(--mute);text-transform:uppercase;letter-spacing:.04em}
+table{width:100%;border-collapse:collapse}
+td{padding:7px 0;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+td:last-child{text-align:right;font-weight:600;white-space:nowrap}
+.good{color:var(--good)}.warn{color:var(--warn)}
+.take{font-weight:600}
+.btns{display:flex;gap:8px;margin-bottom:12px}
+button{flex:1;min-height:44px;font:inherit;font-weight:600;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+details summary{cursor:pointer;font-weight:600;min-height:32px}
+.foot{color:var(--mute);font-size:.75rem;margin:6px 0 24px}
+</style>
+</head>
+<body>
+<main>
+<h1>📦 Flex Block Calculator</h1>
+<p class="sub">Fill in the yellow boxes. Results update as you type and are saved on this phone.</p>
+
+<div class="btns"><button id="ex">Load example</button><button id="clr">Clear</button></div>
+
+<div class="card">
+<h2>Your block</h2>
+<div class="g">
+<label>Block date<input id="date" type="date"></label>
+<label>Payment date<input id="paydate" type="date"></label>
+<label class="full">Route / area<input id="route" type="text" placeholder="e.g. Modesto / Turlock"></label>
+<label>Scheduled start<input id="ss" type="time"></label>
+<label>Scheduled end<input id="se" type="time"></label>
+<label>Actual start<input id="as" type="time"></label>
+<label>Actual end<input id="ae" type="time"></label>
+<label>Base pay ($)<input id="pay" type="number" inputmode="decimal" step="0.01" placeholder="66.50"></label>
+<label>Tips / bonus ($)<input id="tips" type="number" inputmode="decimal" step="0.01" placeholder="0"></label>
+<label>Total miles<input id="mi" type="number" inputmode="decimal" step="0.01" placeholder="72.69"></label>
+<label>Stops (optional)<input id="stops" type="number" inputmode="numeric" placeholder="optional"></label>
+<label class="full">Drive time (optional)<input id="drive" type="text" placeholder="2h 38m"></label>
+</div>
+</div>
+
+<div class="card">
+<details>
+<summary>Settings (energy and IRS rates)</summary>
+<div class="g" style="margin-top:10px">
+<label>kWh per mile<input id="kwh" type="number" inputmode="decimal" step="0.01"></label>
+<label>$ per kWh<input id="price" type="number" inputmode="decimal" step="0.01"></label>
+<label class="full">IRS mileage rate ($/mile)<input id="irs" type="number" inputmode="decimal" step="0.001"></label>
+</div>
+<p class="sub" style="margin:8px 0 0">Defaults are estimates for a Model Y. The IRS rate is $0.76 for Jul 1–Dec 31, 2026.</p>
+</details>
+</div>
+
+<div class="card hero">
+<div class="big" id="r-pay">—</div>
+<div class="sub" style="margin:4px 0 0" id="r-meta">Enter pay and times to see your report.</div>
+</div>
+
+<div class="g" style="margin-bottom:12px">
+<div class="stat"><span>Scheduled rate</span><b id="r-srate">—</b></div>
+<div class="stat"><span>Actual rate</span><b id="r-arate" class="warn">—</b></div>
+<div class="stat"><span>Miles</span><b id="r-mi">—</b></div>
+<div class="stat"><span>Energy cost</span><b id="r-en">—</b></div>
+</div>
+
+<div class="card">
+<h2>Time</h2>
+<table>
+<tr><td>Scheduled hours</td><td id="t-sh">—</td></tr>
+<tr><td>Actual hours</td><td id="t-ah">—</td></tr>
+<tr><td>Finished later (+) / earlier (−)</td><td id="t-over">—</td></tr>
+<tr><td>Pay per mile</td><td id="t-ppm">—</td></tr>
+<tr><td>Pay per stop</td><td id="t-pps">—</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>Pay after energy</h2>
+<table>
+<tr><td>Energy used</td><td id="e-kwh">—</td></tr>
+<tr><td>Estimated energy cost</td><td id="e-cost">—</td></tr>
+<tr><td>Net after energy</td><td id="e-net" class="good">—</td></tr>
+<tr><td>Per scheduled hour</td><td id="e-ps">—</td></tr>
+<tr><td>Per actual hour</td><td id="e-pa">—</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>IRS mileage deduction</h2>
+<table>
+<tr><td>Mileage deduction</td><td id="i-ded" class="good">—</td></tr>
+<tr><td>Pay minus deduction</td><td id="i-prof">—</td></tr>
+<tr><td>Deduction as % of pay</td><td id="i-pct">—</td></tr>
+</table>
+<p class="sub" style="margin:8px 0 0">A tax deduction, not cash. The standard mileage rate generally can't be combined with deducting actual charging costs for the same miles.</p>
+</div>
+
+<div class="card"><h2>Takeaway</h2><div class="take" id="take">—</div></div>
+
+<p class="foot">Self-employment tax (15.3% of net profit) and California income tax apply to yearly Flex profit. Estimates only, not tax advice.</p>
+</main>
+
+<script>
+(function(){
+var K="flex-calc-v1",ids=["date","paydate","route","ss","se","as","ae","pay","tips","mi","stops","drive","kwh","price","irs"];
+var DEF={kwh:"0.28",price:"0.35",irs:"0.76"};
+var EX={date:"2026-10-01",paydate:"2026-10-07",route:"Modesto / Turlock",ss:"20:00",se:"22:30",as:"20:04",ae:"22:43",pay:"66.50",tips:"0",mi:"72.69",stops:"",drive:"2h 38m"};
+var $=function(i){return document.getElementById(i)};
+function load(){var s={};try{s=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
+ ids.forEach(function(i){$(i).value=(s[i]!==undefined?s[i]:(DEF[i]||""))})}
+function save(){var s={};ids.forEach(function(i){s[i]=$(i).value});try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}}
+function mins(t){if(!t)return NaN;var p=t.split(":");return +p[0]*60+ +p[1]}
+function num(i){var v=parseFloat($(i).value);return isNaN(v)?NaN:v}
+function usd(n){return isFinite(n)?"$"+n.toFixed(2):"—"}
+function hr(n){return isFinite(n)?"$"+n.toFixed(2)+"/hr":"—"}
+function set(i,v){$(i).textContent=v}
+function dstr(v){if(!v)return"";var d=new Date(v+"T12:00:00");return d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})}
+function calc(){
+ var pay=num("pay"),tips=num("tips");if(isNaN(tips))tips=0;
+ var total=isNaN(pay)?NaN:pay+tips;
+ var ss=mins($("ss").value),se=mins($("se").value),as=mins($("as").value),ae=mins($("ae").value);
+ var sh=(isNaN(ss)||isNaN(se))?NaN:(((se-ss)+1440)%1440)/60;
+ var ah=(isNaN(as)||isNaN(ae))?NaN:(((ae-as)+1440)%1440)/60;
+ var over=(isNaN(se)||isNaN(ae))?NaN:((((ae-se)+720+1440)%1440)-720);
+ var mi=num("mi"),stops=num("stops"),kwh=num("kwh"),price=num("price"),irs=num("irs");
+ var srate=sh>0?total/sh:NaN,arate=ah>0?total/ah:NaN;
+ var used=mi*kwh,cost=used*price,net=total-cost;
+ var ded=mi*irs,prof=total-ded;
+ set("r-pay",usd(total));
+ var meta=[dstr($("date").value),$("route").value,$("paydate").value?"paid "+dstr($("paydate").value):"",$("drive").value?"drive "+$("drive").value:""].filter(Boolean).join(" · ");
+ set("r-meta",meta||"Enter pay and times to see your report.");
+ set("r-srate",hr(srate));set("r-arate",hr(arate));
+ set("r-mi",isFinite(mi)?mi.toFixed(2):"—");set("r-en",usd(cost));
+ set("t-sh",isFinite(sh)?sh.toFixed(2)+" hr":"—");
+ set("t-ah",isFinite(ah)?ah.toFixed(2)+" hr":"—");
+ set("t-over",isFinite(over)?(over>0?"+":"")+over+" min":"—");
+ set("t-ppm",isFinite(total/mi)?usd(total/mi):"—");
+ set("t-pps",stops>0?usd(total/stops):"—");
+ set("e-kwh",isFinite(used)?used.toFixed(1)+" kWh":"—");
+ set("e-cost",usd(cost));set("e-net",usd(net));
+ set("e-ps",sh>0?hr(net/sh):"—");set("e-pa",ah>0?hr(net/ah):"—");
+ set("i-ded",usd(ded));set("i-prof",usd(prof));
+ set("i-pct",total>0&&isFinite(ded)?Math.round(ded/total*100)+"%":"—");
+ var t="—";
+ if(isFinite(arate)&&isFinite(net)&&ah>0){
+  t="Roughly $"+Math.round(arate)+"/hr before costs and $"+Math.round(net/ah)+"/hr after charging. ";
+  t+=isFinite(over)&&over>0?"You ran over the block by "+over+" min, which lowers your real hourly rate.":"You finished on time or early.";
+ }
+ set("take",t);
+}
+ids.forEach(function(i){$(i).addEventListener("input",function(){save();calc()})});
+$("ex").onclick=function(){ids.forEach(function(i){if(EX[i]!==undefined)$(i).value=EX[i]});save();calc()};
+$("clr").onclick=function(){ids.forEach(function(i){$(i).value=DEF[i]||""});save();calc()};
+load();calc();
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js").catch(function(){})})}
+})();
+</script>
+</body>
+</html>
